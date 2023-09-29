@@ -4,12 +4,14 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
 	"crownest/config"
 	"crownest/github"
 
+	"github.com/argoproj/argo-cd/v2/pkg/apiclient"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +23,10 @@ var rootCmd = &cobra.Command{
 	Long:  "Send ArgoCD diffs to your PRs before merging them",
 
 	Run: func(cmd *cobra.Command, args []string) {
+		_, err := apiclient.NewClient(&apiclient.ClientOptions{})
+		if err != nil {
+			fmt.Println(err)
+		}
 		eventService := github.NewGithubEventService()
 		r := gin.Default()
 		r.GET("/ping", func(c *gin.Context) {
@@ -31,7 +37,7 @@ var rootCmd = &cobra.Command{
 		r.Any("/hook", func(c *gin.Context) {
 			eventService.Handler.HandleEventRequest(c.Request)
 		})
-		r.Run(":30000")
+		r.Run("0.0.0.0:30000")
 	},
 }
 
