@@ -1,15 +1,26 @@
 package github
 
-import "github.com/cbrgm/githubevents/githubevents"
+import (
+	"fmt"
+
+	"github.com/cbrgm/githubevents/githubevents"
+	"github.com/google/go-github/v50/github"
+	"github.com/spf13/viper"
+)
 
 type GithubEventService struct {
-	handler *githubevents.EventHandler
+	Handler *githubevents.EventHandler
 }
 
 func NewGithubEventService() *GithubEventService {
-	return &GithubEventService{
-		handler: githubevents.New("webhookSecret"),
+	service := &GithubEventService{
+		Handler: githubevents.New(viper.GetString("github.token")),
 	}
+	service.Handler.OnIssueCommentCreated(
+		func(deliveryID string, eventName string, event *github.IssueCommentEvent) error {
+			fmt.Printf("%s made a comment!", event.Sender.Login)
+			return nil
+		},
+	)
+	return service
 }
-
-
